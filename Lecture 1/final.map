@@ -1,0 +1,111 @@
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+RAM              0x20000000         0x00010000         xrw
+FLASH            0x08000000         0x00040000         xr
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+LOAD preprocessor.o
+LOAD global_var.o
+                0x20010000                _estack = (ORIGIN (RAM) + LENGTH (RAM))
+                0x00000200                _Min_Heap_Size = 0x200
+                0x00000400                _Min_Stack_Size = 0x400
+
+.isr_vectors    0x08000000        0x0
+                0x08000000                . = ALIGN (0x4)
+ *(.isr_vectors)
+ *(.after_vectors)
+                0x08000000                . = ALIGN (0x4)
+
+.text           0x08000000       0x40
+                0x08000000                . = ALIGN (0x4)
+ *(.text)
+ .text          0x08000000       0x40 preprocessor.o
+                0x08000000                main
+                0x08000024                add
+ .text          0x08000040        0x0 global_var.o
+ *(.text*)
+ *(.init)
+ *(.fini)
+                0x08000040                . = ALIGN (0x4)
+                0x08000040                _etext = .
+
+.glue_7         0x08000040        0x0
+ .glue_7        0x08000040        0x0 linker stubs
+
+.glue_7t        0x08000040        0x0
+ .glue_7t       0x08000040        0x0 linker stubs
+
+.vfp11_veneer   0x08000040        0x0
+ .vfp11_veneer  0x08000040        0x0 linker stubs
+
+.v4_bx          0x08000040        0x0
+ .v4_bx         0x08000040        0x0 linker stubs
+
+.iplt           0x08000040        0x0
+ .iplt          0x08000040        0x0 preprocessor.o
+
+.rel.dyn        0x08000040        0x0
+ .rel.iplt      0x08000040        0x0 preprocessor.o
+
+.rodata         0x08000040        0x0
+                0x08000040                . = ALIGN (0x4)
+ *(.rodata)
+ *(.rodata*)
+                0x08000040                . = ALIGN (0x4)
+                0x08000040                _sidata = LOADADDR (.data)
+
+.data           0x20000000        0xc load address 0x08000040
+                0x20000000                . = ALIGN (0x4)
+                0x20000000                _sdata = .
+ *(.data)
+ .data          0x20000000        0x8 preprocessor.o
+                0x20000004                var4
+ .data          0x20000008        0x4 global_var.o
+                0x20000008                var
+ *(.data*)
+                0x2000000c                . = ALIGN (0x4)
+                0x2000000c                _edata = .
+
+.igot.plt       0x2000000c        0x0 load address 0x0800004c
+ .igot.plt      0x2000000c        0x0 preprocessor.o
+
+.bss            0x2000000c        0x4 load address 0x0800004c
+                0x2000000c                . = ALIGN (0x4)
+                0x2000000c                _sbss = .
+                0x2000000c                __bss_start__ = _sbss
+ *(.bss)
+ .bss           0x2000000c        0x4 preprocessor.o
+                0x2000000c                var3
+ .bss           0x20000010        0x0 global_var.o
+ *(.bss*)
+                0x20000010                . = ALIGN (0x4)
+                0x20000010                _ebss = .
+                0x20000010                __bss_end__ = _ebss
+                0x20000010                end = .
+
+._user_heap_stack
+                0x20000010      0x600 load address 0x0800004c
+                0x20000010                . = ALIGN (0x8)
+                0x20000210                . = (. + _Min_Heap_Size)
+ *fill*         0x20000010      0x200 
+                0x20000610                . = (. + _Min_Stack_Size)
+ *fill*         0x20000210      0x400 
+                0x20000610                . = ALIGN (0x8)
+OUTPUT(a.out elf32-littlearm)
+LOAD linker stubs
+
+.comment        0x00000000       0x4d
+ .comment       0x00000000       0x4d preprocessor.o
+                                 0x4e (size before relaxing)
+ .comment       0x0000004d       0x4e global_var.o
+
+.ARM.attributes
+                0x00000000       0x2e
+ .ARM.attributes
+                0x00000000       0x2e preprocessor.o
+ .ARM.attributes
+                0x0000002e       0x33 global_var.o
